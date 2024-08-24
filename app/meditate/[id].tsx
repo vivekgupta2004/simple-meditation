@@ -1,5 +1,5 @@
 import { View, Text, ImageBackground, Pressable } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import MEDITATION_IMAGES from '@/constants/meditation-images'
 import AppGradient from '@/components/AppGradient'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -8,6 +8,7 @@ import CustomButton from '@/components/CustomButton'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { Audio } from 'expo-av'
 import { MEDITATION_DATA, AUDIO_FILES } from '@/constants/MeditationData'
+import { TimerContext } from '@/context/TimerContext'
 
 
 
@@ -15,7 +16,9 @@ import { MEDITATION_DATA, AUDIO_FILES } from '@/constants/MeditationData'
 const Meditate = () => {
 
     const { id } = useLocalSearchParams();
-    const [secondsRemaining, setSecondsRemaining] = useState(12);
+     
+    const {duration: secondsRemaining , setDuration} = useContext(TimerContext)
+    // const [secondsRemaining, setSecondsRemaining] = useState(12);
     const [isMeditating, setMeditating] = useState(false);
     const [audioSound, setSound] = useState<Audio.Sound>();
 
@@ -31,7 +34,7 @@ const Meditate = () => {
         }
         if (isMeditating) {
             timerId = setTimeout(() => {
-                setSecondsRemaining(secondsRemaining - 1);
+                setDuration(secondsRemaining - 1);
             }, 1000)
         }
 
@@ -43,12 +46,13 @@ const Meditate = () => {
 
     useEffect(() => {
         return () => {
+            setDuration(10);
             audioSound?.unloadAsync()
         }
     }, [audioSound])
 
     const toggleMeditationSessionStatus = async () => {
-        if (secondsRemaining === 0) setSecondsRemaining(10);
+        if (secondsRemaining === 0) setDuration(10);
 
         setMeditating(!isMeditating)
 
@@ -82,6 +86,12 @@ const Meditate = () => {
 
     }
 
+
+     const handleAdjustDuration =() =>{
+        if(isMeditating) toggleMeditationSessionStatus();
+
+        router.push("/(modal)/adjust-meditation-duration");
+     }
     //Format the time left to ensure two digit  are displayed
 
     const formattedTimeMinutes = String(Math.floor(secondsRemaining / 60)).padStart(2, "0");
@@ -104,7 +114,11 @@ const Meditate = () => {
                     </View>
                     <GestureHandlerRootView className='mb-5'>
                         <View>
-                            <CustomButton title='Start Meditation' onPress={toggleMeditationSessionStatus} />
+                            <CustomButton title='Adjust duration' onPress={handleAdjustDuration} />
+
+                        </View>
+                        <View>
+                            <CustomButton title={isMeditating?"Stop":"Start Meditation"} onPress={toggleMeditationSessionStatus} containerStyles='mt-4' />
 
                         </View>
                     </GestureHandlerRootView>
