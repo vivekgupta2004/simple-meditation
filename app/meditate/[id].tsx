@@ -29,7 +29,9 @@ const Meditate = () => {
         let timerId: NodeJS.Timeout;
         //Exit
         if (secondsRemaining === 0) {
+            audioSound?.unloadAsync()
             setMeditating(false);
+            router.back()
             return
         }
         if (isMeditating) {
